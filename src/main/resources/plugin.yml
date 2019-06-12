@@ -1,0 +1,5 @@
+name: Airdrops
+version: ${project.version}
+main: me.reckfullies.airdrops.Airdrops
+api-version: 1.14
+authors: [Reckfullies]
