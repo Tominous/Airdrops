@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>airdrops-dist</artifactId>
+    <version>${project.parent.version}</version>
+    <packaging>jar</packaging>
+
+    <parent>
+        <groupId>me.reckfullies</groupId>
+        <artifactId>airdrops-parent</artifactId>
+        <version>1.0</version>
+    </parent>
+
+    <build>
+        <directory>../target</directory>
+        <finalName>airdrops-${project.version}</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.1.1</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <outputFile>../../../SERVER/plugins/airdrops-${project.version}.jar</outputFile>
+                            <artifactSet>
+                                <includes>
+                                    <include>me.reckfullies:airdrops-*</include>
+                                </includes>
+                            </artifactSet>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <dependencies>
+        <dependency>
+            <groupId>me.reckfullies</groupId>
+            <artifactId>airdrops-core</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+    </dependencies>
+</project>
