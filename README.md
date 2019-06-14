@@ -1,4 +1,8 @@
 # Airdrops
+
+![enter image description here](https://img.shields.io/github/license/Reckfullies/Airdrops.svg?style=popout)
+![enter image description here](https://img.shields.io/spiget/tested-versions/123123.svg?style=popout)
+
 In-Development. Will eventually release this when it is complete.
 
 &nbsp;
