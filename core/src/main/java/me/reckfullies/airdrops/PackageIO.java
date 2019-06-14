@@ -15,7 +15,7 @@ import java.util.HashMap;
  *
  * @author Reckfullies
  */
-class PackageIO
+public class PackageIO
 {
     private String pluginDataPath;
     private String packageJsonPath;
@@ -37,7 +37,7 @@ class PackageIO
      *
      * @param packageToSave Package object to save
      */
-    void savePackage(Package packageToSave)
+    public void savePackage(Package packageToSave)
     {
         File jsonFile = new File(packageJsonPath);
         HashMap<String, Package> packageMap = new HashMap<>();
@@ -73,7 +73,7 @@ class PackageIO
      * @param packageName Package name to load
      * @return Package object generated from JSON, some values may be null
      */
-    Package loadPackage(String packageName)
+    public Package loadPackage(String packageName)
     {
         if (loadedPackages.containsKey(packageName))
         {
@@ -83,6 +83,25 @@ class PackageIO
         {
             throw new RuntimeException("Failed to load package '" + packageName + "' - package does not exist!");
         }
+    }
+
+    /**
+     * Reloads packages stored in memory
+     */
+    public void reloadAllPackages()
+    {
+        this.loadedPackages = loadAllPackages();
+    }
+
+    /**
+     * Checks for a package in memory
+     *
+     * @param packageName Package name to check
+     * @return Is this package in memory?
+     */
+    public boolean checkPackageExists(String packageName)
+    {
+        return loadedPackages.containsKey(packageName);
     }
 
     /**
@@ -124,4 +143,11 @@ class PackageIO
                 throw new RuntimeException("Failed to read packages.json! - IO Exception/File Not Found", ex);
         }
     }
+
+    //region Getters
+    public HashMap<String, Package> getLoadedPackages()
+    {
+        return loadedPackages;
+    }
+    //endregion
 }

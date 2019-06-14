@@ -1,33 +1,56 @@
 package me.reckfullies.airdrops;
 
+import co.aikar.commands.PaperCommandManager;
+import me.reckfullies.airdrops.commands.PackageCommand;
+import org.bstats.bukkit.Metrics;
 import org.bukkit.plugin.java.JavaPlugin;
-
-import java.util.logging.Level;
 
 public final class Airdrops extends JavaPlugin
 {
+    private Metrics metrics;
     private PackageIO packageIO;
+    private PaperCommandManager commandManager;
 
     @Override
     public void onEnable()
     {
-        // Plugin startup logic
-        this.packageIO = new PackageIO(this.getDataFolder().getAbsolutePath());
+        metrics = new Metrics(this);
+        commandManager = new PaperCommandManager(this);
+        packageIO = new PackageIO(getDataFolder().getAbsolutePath());
 
-        Package testPackage = this.packageIO.loadPackage("createdInConfig");
-
-        if (testPackage != null)
-        {
-            this.getLogger().log(Level.INFO, "----- Package Info -----");
-            this.getLogger().log(Level.INFO, "Name: " + testPackage.getName());
-            this.getLogger().log(Level.INFO, "Type: " + testPackage.getType());
-            this.getLogger().log(Level.INFO, "------------------------");
-        }
+        RegisterDependencies();
+        RegisterCompletions();
+        RegisterCommands();
     }
 
-    @Override
-    public void onDisable()
+    /**
+     * Registers command dependencies for ACF
+     */
+    private void RegisterDependencies()
     {
-        // Plugin shutdown logic
+        commandManager.registerDependency(PackageIO.class, packageIO);
     }
+
+    /**
+     * Registers command tab-completions for ACF
+     */
+    private void RegisterCompletions()
+    {
+        commandManager.getCommandCompletions().registerCompletion("packageName", c -> packageIO.getLoadedPackages().keySet());
+    }
+
+    /**
+     * Registers commands for ACF
+     */
+    private void RegisterCommands()
+    {
+        commandManager.registerCommand(new PackageCommand());
+    }
+
+    //region Getters
+    public PackageIO getPackageIO()
+    {
+        return packageIO;
+    }
+    //endregion
 }

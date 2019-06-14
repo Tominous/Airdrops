@@ -33,8 +33,17 @@
                             <artifactSet>
                                 <includes>
                                     <include>me.reckfullies:airdrops-*</include>
+                                    <include>co.aikar:*</include>
+                                    <include>net.jodah:*</include>
+                                    <include>org.bstats:*</include>
                                 </includes>
                             </artifactSet>
+                            <relocations>
+                                <relocation>
+                                    <pattern>org.bstats</pattern>
+                                    <shadedPattern>me.reckfullies.airdrops.bstats</shadedPattern>
+                                </relocation>
+                            </relocations>
                         </configuration>
                     </execution>
                 </executions>
