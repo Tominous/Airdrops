@@ -2,6 +2,7 @@ package me.reckfullies.airdrops;
 
 import co.aikar.commands.PaperCommandManager;
 import me.reckfullies.airdrops.commands.PackageCommand;
+import me.reckfullies.airdrops.listeners.ChestListener;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -21,6 +22,8 @@ public final class Airdrops extends JavaPlugin
         RegisterDependencies();
         RegisterCompletions();
         RegisterCommands();
+
+        RegisterListeners();
     }
 
     /**
@@ -36,7 +39,7 @@ public final class Airdrops extends JavaPlugin
      */
     private void RegisterCompletions()
     {
-        commandManager.getCommandCompletions().registerCompletion("packageName", c -> packageIO.getLoadedPackages().keySet());
+        commandManager.getCommandCompletions().registerCompletion("packageName", c -> packageIO.getLoadedPackageNames());
     }
 
     /**
@@ -45,6 +48,14 @@ public final class Airdrops extends JavaPlugin
     private void RegisterCommands()
     {
         commandManager.registerCommand(new PackageCommand());
+    }
+
+    /**
+     * Registers event listeners
+     */
+    private void RegisterListeners()
+    {
+        getServer().getPluginManager().registerEvents(new ChestListener(this), this);
     }
 
     //region Getters

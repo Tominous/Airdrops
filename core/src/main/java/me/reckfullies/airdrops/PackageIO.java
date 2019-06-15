@@ -5,10 +5,16 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
+import me.reckfullies.airdrops.gson.adapters.ItemStackAdapter;
+import me.reckfullies.airdrops.gson.adapters.ItemStackListAdapter;
+import me.reckfullies.airdrops.gson.adapters.PackageAdapter;
+import me.reckfullies.airdrops.gson.adapters.PackageListAdapter;
+import org.bukkit.inventory.ItemStack;
 
 import javax.annotation.Nullable;
 import java.io.*;
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Handles saving/loading of package data
@@ -21,13 +27,20 @@ public class PackageIO
     private String packageJsonPath;
 
     private Gson gson;
-    private HashMap<String, Package> loadedPackages;
+    private List<Package> loadedPackages;
 
     PackageIO(String pluginDataPath)
     {
         this.pluginDataPath = pluginDataPath;
         this.packageJsonPath = pluginDataPath.concat("\\packages.json");
-        this.gson = new GsonBuilder().setPrettyPrinting().create();
+
+        GsonBuilder gsonBuilder = new GsonBuilder();
+        gsonBuilder.setPrettyPrinting();
+        gsonBuilder.registerTypeAdapter(new TypeToken<ItemStack>(){}.getType(), new ItemStackAdapter());
+        gsonBuilder.registerTypeAdapter(new TypeToken<List<ItemStack>>(){}.getType(), new ItemStackListAdapter());
+        gsonBuilder.registerTypeAdapter(new TypeToken<Package>(){}.getType(), new PackageAdapter());
+        gsonBuilder.registerTypeAdapter(new TypeToken<List<Package>>(){}.getType(), new PackageListAdapter());
+        this.gson = gsonBuilder.create();
 
         this.loadedPackages = loadAllPackages();
     }
@@ -40,16 +53,16 @@ public class PackageIO
     public void savePackage(Package packageToSave)
     {
         File jsonFile = new File(packageJsonPath);
-        HashMap<String, Package> packageMap = new HashMap<>();
+        List<Package> packageList = new ArrayList<>();
 
         if (jsonFile.exists())
-            packageMap = readPackagesJson();
+            packageList = readPackagesJson();
 
-        if (packageMap == null)
-            packageMap = new HashMap<>();
+        if (packageList == null)
+            packageList = new ArrayList<>();
 
-        if (!packageMap.containsKey(packageToSave.getName()))
-            packageMap.put(packageToSave.getName(), packageToSave);
+        if (!packageList.contains(packageToSave))
+            packageList.add(packageToSave);
 
         try
         {
@@ -58,7 +71,7 @@ public class PackageIO
                 directory.mkdir();
 
             Writer writer = new FileWriter(packageJsonPath);
-            writer.write(gson.toJson(packageMap));
+            writer.write(gson.toJson(packageList, new TypeToken<List<Package>>(){}.getType()));
             writer.close();
         }
         catch (IOException ex)
@@ -75,14 +88,13 @@ public class PackageIO
      */
     public Package loadPackage(String packageName)
     {
-        if (loadedPackages.containsKey(packageName))
+        for (Package pkg : loadedPackages)
         {
-            return loadedPackages.get(packageName);
+            if (pkg.getName().equals(packageName))
+                return pkg;
         }
-        else
-        {
-            throw new RuntimeException("Failed to load package '" + packageName + "' - package does not exist!");
-        }
+
+        throw new RuntimeException("Failed to load package '" + packageName + "' - package does not exist!");
     }
 
     /**
@@ -101,7 +113,13 @@ public class PackageIO
      */
     public boolean checkPackageExists(String packageName)
     {
-        return loadedPackages.containsKey(packageName);
+        for (Package pkg : loadedPackages)
+        {
+            if (pkg.getName().equals(packageName))
+                return true;
+        }
+
+        return false;
     }
 
     /**
@@ -110,14 +128,14 @@ public class PackageIO
      * @return Package map generated from JSON, some values may be null
      */
     @Nullable
-    private HashMap<String, Package> loadAllPackages()
+    private List<Package> loadAllPackages()
     {
         File jsonFile = new File(packageJsonPath);
 
         if (jsonFile.exists())
             return readPackagesJson();
         else
-            throw new RuntimeException("Failed to load packages - packages.json does not exist!");
+            return new ArrayList<>();
     }
 
     /**
@@ -126,12 +144,12 @@ public class PackageIO
      * @return Packages map if found, otherwise will return null
      */
     @Nullable
-    private HashMap<String, Package> readPackagesJson()
+    private List<Package> readPackagesJson()
     {
         try
         {
             BufferedReader br = new BufferedReader(new FileReader(packageJsonPath));
-            return gson.fromJson(br, new TypeToken<HashMap<String, Package>>() {}.getType());
+            return gson.fromJson(br, new TypeToken<List<Package>>() {}.getType());
         }
         catch (FileNotFoundException | JsonIOException | JsonSyntaxException ex)
         {
@@ -145,9 +163,18 @@ public class PackageIO
     }
 
     //region Getters
-    public HashMap<String, Package> getLoadedPackages()
+    public List<Package> getLoadedPackages()
     {
         return loadedPackages;
+    }
+    public List<String> getLoadedPackageNames()
+    {
+        List<String> packageNames = new ArrayList<>();
+
+        for (Package pkg : loadedPackages)
+            packageNames.add(pkg.getName());
+
+        return packageNames;
     }
     //endregion
 }

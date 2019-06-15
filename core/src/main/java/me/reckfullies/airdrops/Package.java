@@ -1,14 +1,18 @@
 package me.reckfullies.airdrops;
 
+import org.bukkit.inventory.ItemStack;
+
+import java.util.List;
+
 public class Package
 {
     private String packageName;
-    private PackageType packageType;
+    private List<ItemStack> packageItems;
 
-    public Package(String packageName, PackageType packageType)
+    public Package(String packageName, List<ItemStack> packageItems)
     {
         this.packageName = packageName;
-        this.packageType = packageType;
+        this.packageItems = packageItems;
     }
 
     //region Getters
@@ -16,9 +20,6 @@ public class Package
     {
         return packageName;
     }
-    public PackageType getType()
-    {
-        return packageType;
-    }
+    public List<ItemStack> getItems() { return packageItems; }
     //endregion
 }
