@@ -127,7 +127,6 @@ public class PackageIO
      *
      * @return Package map generated from JSON, some values may be null
      */
-    @Nullable
     private List<Package> loadAllPackages()
     {
         File jsonFile = new File(packageJsonPath);
@@ -143,13 +142,13 @@ public class PackageIO
      *
      * @return Packages map if found, otherwise will return null
      */
-    @Nullable
     private List<Package> readPackagesJson()
     {
         try
         {
             BufferedReader br = new BufferedReader(new FileReader(packageJsonPath));
-            return gson.fromJson(br, new TypeToken<List<Package>>() {}.getType());
+            List<Package> packages = gson.fromJson(br, new TypeToken<List<Package>>() {}.getType());
+            return packages == null ? new ArrayList<>() : packages;
         }
         catch (FileNotFoundException | JsonIOException | JsonSyntaxException ex)
         {
