@@ -70,7 +70,9 @@ public class PackageCommand extends BaseCommand
             return;
         }
 
-        // TODO: Incomplete for now
+        packageIO.deletePackage(packageName);
+        packageIO.reloadAllPackages();
+        player.sendMessage(ChatColor.GREEN + "Package '" + packageName + "' deleted!");
     }
 
     @Subcommand("call")
@@ -110,6 +112,6 @@ public class PackageCommand extends BaseCommand
     private void onReloadPackages(Player player)
     {
         packageIO.reloadAllPackages();
-        player.sendMessage(ChatColor.GREEN + "Packages Reloaded");
+        player.sendMessage(ChatColor.GREEN + "Packages reloaded");
     }
 }

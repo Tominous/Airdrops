@@ -23,6 +23,7 @@ public class ItemStackAdapter implements JsonSerializer<ItemStack>, JsonDeserial
 
         JsonObject jsonObject = new JsonObject();
 
+        jsonObject.add("amount", new JsonPrimitive(itemStack.getAmount()));
         jsonObject.add("material", new JsonPrimitive(itemStack.getType().name()));
 
         if (itemStack.hasItemMeta())
@@ -69,6 +70,10 @@ public class ItemStackAdapter implements JsonSerializer<ItemStack>, JsonDeserial
         ItemStack itemStack = new ItemStack(Material.STONE);
         ItemMeta itemMeta = itemStack.getItemMeta();
 
+        if (jsonObject.has("amount"))
+        {
+            itemStack.setAmount(jsonObject.get("amount").getAsInt());
+        }
         if (jsonObject.has("material"))
         {
             Material itemMaterial = Material.getMaterial(jsonObject.get("material").getAsString());

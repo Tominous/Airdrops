@@ -52,32 +52,26 @@ public class PackageIO
      */
     public void savePackage(Package packageToSave)
     {
-        File jsonFile = new File(packageJsonPath);
-        List<Package> packageList = new ArrayList<>();
-
-        if (jsonFile.exists())
-            packageList = readPackagesJson();
-
-        if (packageList == null)
-            packageList = new ArrayList<>();
+        List<Package> packageList = readPackagesJson();
 
         if (!packageList.contains(packageToSave))
             packageList.add(packageToSave);
 
-        try
-        {
-            File directory = new File(pluginDataPath);
-            if (!directory.exists())
-                directory.mkdir();
+        writePackagesJson(packageList);
+    }
 
-            Writer writer = new FileWriter(packageJsonPath);
-            writer.write(gson.toJson(packageList, new TypeToken<List<Package>>(){}.getType()));
-            writer.close();
-        }
-        catch (IOException ex)
-        {
-            throw new RuntimeException("Failed to write to packages.json!", ex);
-        }
+    /**
+     * Deletes a package configuration from JSON
+     *
+     * @param packageName Name of package to delete
+     */
+    public void deletePackage(String packageName)
+    {
+        List<Package> packageList = readPackagesJson();
+
+        packageList.removeIf(pkg -> pkg.getName().equals(packageName));
+
+        writePackagesJson(packageList);
     }
 
     /**
@@ -125,7 +119,7 @@ public class PackageIO
     /**
      * Loads all package configurations from JSON
      *
-     * @return Package map generated from JSON, some values may be null
+     * @return Package list generated from JSON, some values may be null
      */
     private List<Package> loadAllPackages()
     {
@@ -140,10 +134,14 @@ public class PackageIO
     /**
      * Read packages from a JSON file
      *
-     * @return Packages map if found, otherwise will return null
+     * @return Packages list if found, otherwise will be an empty list
      */
     private List<Package> readPackagesJson()
     {
+        File jsonFile = new File(packageJsonPath);
+        if (!jsonFile.exists())
+            return new ArrayList<>();
+
         try
         {
             BufferedReader br = new BufferedReader(new FileReader(packageJsonPath));
@@ -158,6 +156,29 @@ public class PackageIO
             }
             else
                 throw new RuntimeException("Failed to read packages.json! - IO Exception/File Not Found", ex);
+        }
+    }
+
+    /**
+     * Writes packages to a JSON file
+     *
+     * @param packages List of packages to write
+     */
+    private void writePackagesJson(List<Package> packages)
+    {
+        try
+        {
+            File directory = new File(pluginDataPath);
+            if (!directory.exists())
+                directory.mkdir();
+
+            Writer writer = new FileWriter(packageJsonPath);
+            writer.write(gson.toJson(packages, new TypeToken<List<Package>>(){}.getType()));
+            writer.close();
+        }
+        catch (IOException ex)
+        {
+            throw new RuntimeException("Failed to write to packages.json!", ex);
         }
     }
 
