@@ -16,7 +16,10 @@ public final class Airdrops extends JavaPlugin
     public void onEnable()
     {
         metrics = new Metrics(this);
+
         commandManager = new PaperCommandManager(this);
+        commandManager.enableUnstableAPI("help");
+
         packageIO = new PackageIO(getDataFolder().getAbsolutePath());
 
         RegisterDependencies();

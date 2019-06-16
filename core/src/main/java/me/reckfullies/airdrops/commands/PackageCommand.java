@@ -1,6 +1,7 @@
 package me.reckfullies.airdrops.commands;
 
 import co.aikar.commands.BaseCommand;
+import co.aikar.commands.CommandHelp;
 import co.aikar.commands.annotation.*;
 import me.reckfullies.airdrops.Airdrops;
 import me.reckfullies.airdrops.Package;
@@ -11,6 +12,7 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.Chest;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
@@ -18,6 +20,7 @@ import org.bukkit.persistence.PersistentDataType;
 import java.util.ArrayList;
 
 @CommandAlias("airdrops")
+@CommandPermission("airdrops")
 @Description("Main command for Airdrops")
 public class PackageCommand extends BaseCommand
 {
@@ -28,14 +31,14 @@ public class PackageCommand extends BaseCommand
     private PackageIO packageIO;
 
     @HelpCommand
-    private void onHelp(Player player)
+    private void onHelp(CommandSender sender, CommandHelp help)
     {
-        // Print help message
-        player.sendMessage(ChatColor.RED + "Help message not implemented!");
+        help.showHelp();
     }
 
     @Subcommand("create")
-    @Description("Creates an airdrop with current inventory as rewards - Includes Armor!")
+    @CommandPermission("airdrops.create")
+    @Description("Creates an airdrop with current inventory as rewards.")
     private void onCreatePackage(Player player, @Single String packageName)
     {
         if (packageIO.checkPackageExists(packageName))
@@ -61,7 +64,8 @@ public class PackageCommand extends BaseCommand
 
     @Subcommand("delete")
     @CommandCompletion("@packageName")
-    @Description("Deletes an airdrop")
+    @CommandPermission("airdrops.delete")
+    @Description("Deletes an airdrop.")
     private void onDeletePackage(Player player, @Single String packageName)
     {
         if (!packageIO.checkPackageExists(packageName))
@@ -77,7 +81,8 @@ public class PackageCommand extends BaseCommand
 
     @Subcommand("call")
     @CommandCompletion("@packageName")
-    @Description("Calls an airdrop where the player is looking")
+    @CommandPermission("airdrops.call")
+    @Description("Calls an airdrop at player crosshair.")
     private void onCallPackage(Player player, @Single String packageName)
     {
         if (!packageIO.checkPackageExists(packageName))
@@ -109,6 +114,8 @@ public class PackageCommand extends BaseCommand
     }
 
     @Subcommand("reload")
+    @CommandPermission("airdrops.reload")
+    @Description("Reload all packages from file.")
     private void onReloadPackages(Player player)
     {
         packageIO.reloadAllPackages();
