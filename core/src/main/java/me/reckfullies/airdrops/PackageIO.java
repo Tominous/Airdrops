@@ -29,14 +29,14 @@ public class PackageIO
     private Gson gson;
     private List<Package> loadedPackages;
 
-    PackageIO(String pluginDataPath)
+    PackageIO(Airdrops pluginInstance, String pluginDataPath)
     {
         this.pluginDataPath = pluginDataPath;
         this.packageJsonPath = pluginDataPath.concat("\\packages.json");
 
         GsonBuilder gsonBuilder = new GsonBuilder();
         gsonBuilder.setPrettyPrinting();
-        gsonBuilder.registerTypeAdapter(new TypeToken<ItemStack>(){}.getType(), new ItemStackAdapter());
+        gsonBuilder.registerTypeAdapter(new TypeToken<ItemStack>(){}.getType(), new ItemStackAdapter(pluginInstance));
         gsonBuilder.registerTypeAdapter(new TypeToken<List<ItemStack>>(){}.getType(), new ItemStackListAdapter());
         gsonBuilder.registerTypeAdapter(new TypeToken<Package>(){}.getType(), new PackageAdapter());
         gsonBuilder.registerTypeAdapter(new TypeToken<List<Package>>(){}.getType(), new PackageListAdapter());

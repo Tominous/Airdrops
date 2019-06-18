@@ -20,7 +20,7 @@ public final class Airdrops extends JavaPlugin
         commandManager = new PaperCommandManager(this);
         commandManager.enableUnstableAPI("help");
 
-        packageIO = new PackageIO(getDataFolder().getAbsolutePath());
+        packageIO = new PackageIO(this, getDataFolder().getAbsolutePath());
 
         RegisterDependencies();
         RegisterCompletions();
