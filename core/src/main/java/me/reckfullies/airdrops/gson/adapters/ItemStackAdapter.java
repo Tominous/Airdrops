@@ -2,9 +2,7 @@ package me.reckfullies.airdrops.gson.adapters;
 
 import com.google.gson.*;
 import me.reckfullies.airdrops.Airdrops;
-import org.bukkit.Color;
-import org.bukkit.FireworkEffect;
-import org.bukkit.Material;
+import org.bukkit.*;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.*;
@@ -14,10 +12,7 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.potion.PotionType;
 
 import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ItemStackAdapter implements JsonSerializer<ItemStack>, JsonDeserializer<ItemStack>
 {
@@ -94,6 +89,18 @@ public class ItemStackAdapter implements JsonSerializer<ItemStack>, JsonDeserial
                 FireworkMeta fireworkMeta = (FireworkMeta) itemMeta;
                 jsonObject.add("fireworkMeta", serializeFirework(fireworkMeta));
             }
+
+            if (itemMeta instanceof LeatherArmorMeta)
+            {
+                LeatherArmorMeta leatherArmorMeta = (LeatherArmorMeta) itemMeta;
+                jsonObject.add("leatherArmorMeta", serializeLeatherArmor(leatherArmorMeta));
+            }
+
+            if (itemMeta instanceof SkullMeta)
+            {
+                SkullMeta skullMeta = (SkullMeta) itemMeta;
+                jsonObject.add("skullMeta", serializeSkull(skullMeta));
+            }
         }
 
         return jsonObject;
@@ -149,24 +156,22 @@ public class ItemStackAdapter implements JsonSerializer<ItemStack>, JsonDeserial
         }
 
         if (jsonObject.has("potionMeta"))
-        {
             itemMeta = deserializePotion(jsonObject.get("potionMeta").getAsJsonObject());
-        }
 
         if (jsonObject.has("enchantStorageMeta"))
-        {
             itemMeta = deserializeEnchantStorage(jsonObject.get("enchantStorageMeta").getAsJsonArray());
-        }
 
         if (jsonObject.has("bookMeta"))
-        {
             itemMeta = deserializeBook(jsonObject.get("bookMeta").getAsJsonObject());
-        }
 
         if (jsonObject.has("fireworkMeta"))
-        {
             itemMeta = deserializeFirework(jsonObject.get("fireworkMeta").getAsJsonObject());
-        }
+
+        if (jsonObject.has("leatherArmorMeta"))
+            itemMeta = deserializeLeatherArmor(jsonObject.get("leatherArmorMeta").getAsJsonObject());
+
+        if (jsonObject.has("skullMeta"))
+            itemMeta = deserializeSkull(jsonObject.get("skullMeta").getAsJsonObject());
 
         itemStack.setItemMeta(itemMeta);
 
@@ -472,6 +477,58 @@ public class ItemStackAdapter implements JsonSerializer<ItemStack>, JsonDeserial
         }
 
         return fireworkMeta;
+    }
+    //endregion
+
+    //region Leather Armor
+    private JsonObject serializeLeatherArmor(LeatherArmorMeta leatherArmorMeta)
+    {
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.add("color", getJsonFromColor(leatherArmorMeta.getColor()));
+        return jsonObject;
+    }
+
+    private LeatherArmorMeta deserializeLeatherArmor(JsonObject jsonObject)
+    {
+        LeatherArmorMeta leatherArmorMeta = (LeatherArmorMeta) pluginInstance.getServer().getItemFactory().getItemMeta(Material.LEATHER_CHESTPLATE);
+        if (leatherArmorMeta == null)
+            throw new RuntimeException("Error serializing item! - Can't cast ItemMeta to LeatherArmorMeta");
+
+        Color armorColor = getColorFromJson(jsonObject.get("color").getAsJsonObject());
+        leatherArmorMeta.setColor(armorColor);
+
+        return leatherArmorMeta;
+    }
+    //endregion
+
+    //region Head/Skull
+
+    /*
+     * NOTE: Bukkit.getOfflinePlayer(UUID) seems to be bugged and will only find players who have joined the server.
+     * Because of this, I am forced to use deprecated methods to get/set the owner of the skull.
+     */
+
+    private JsonObject serializeSkull(SkullMeta skullMeta)
+    {
+        JsonObject jsonObject = new JsonObject();
+
+        if (skullMeta.hasOwner())
+        {
+            jsonObject.add("owner", new JsonPrimitive(skullMeta.getOwner()));
+        }
+
+        return jsonObject;
+    }
+
+    private SkullMeta deserializeSkull(JsonObject jsonObject)
+    {
+        SkullMeta skullMeta = (SkullMeta) pluginInstance.getServer().getItemFactory().getItemMeta(Material.PLAYER_HEAD);
+        if (skullMeta == null)
+            throw new RuntimeException("Error serializing item! - Can't cast ItemMeta to SkullMeta");
+
+        skullMeta.setOwner(jsonObject.get("owner").getAsString());
+
+        return skullMeta;
     }
     //endregion
 
