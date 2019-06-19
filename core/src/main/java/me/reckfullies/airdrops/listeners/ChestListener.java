@@ -10,7 +10,13 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
+import org.jetbrains.annotations.NotNull;
 
+/**
+ * Listener for all chest related events
+ *
+ * @author Reckfullies
+ */
 public class ChestListener implements Listener
 {
     private Airdrops pluginInstance;
@@ -42,12 +48,9 @@ public class ChestListener implements Listener
     }
 
     /**
-     * Checks if an inventory is empty
-     *
-     * @param inv Inventory to check
-     * @return Is the inventory empty?
+     * Checks if an {@link Inventory} is empty
      */
-    private boolean isInventoryEmpty(Inventory inv)
+    private boolean isInventoryEmpty(@NotNull Inventory inv)
     {
         for (ItemStack item : inv.getContents())
         {

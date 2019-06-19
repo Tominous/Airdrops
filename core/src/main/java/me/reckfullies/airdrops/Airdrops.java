@@ -6,6 +6,11 @@ import me.reckfullies.airdrops.listeners.ChestListener;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.plugin.java.JavaPlugin;
 
+/**
+ * Plugin entry-point for Airdrops
+ *
+ * @author Reckfullies
+ */
 public final class Airdrops extends JavaPlugin
 {
     private Metrics metrics;

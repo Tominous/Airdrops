@@ -2,7 +2,9 @@ package me.reckfullies.airdrops.gson.adapters;
 
 import com.google.gson.*;
 import me.reckfullies.airdrops.Airdrops;
-import org.bukkit.*;
+import org.bukkit.Color;
+import org.bukkit.FireworkEffect;
+import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.*;
@@ -10,10 +12,21 @@ import org.bukkit.potion.PotionData;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.potion.PotionType;
+import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Type;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
+import static me.reckfullies.airdrops.gson.adapters.AdapterUtils.*;
+
+/**
+ * GSON serializer/deserializer for {@link ItemStack}
+ *
+ * @author Reckfullies
+ */
 public class ItemStackAdapter implements JsonSerializer<ItemStack>, JsonDeserializer<ItemStack>
 {
     private Airdrops pluginInstance;
@@ -23,6 +36,7 @@ public class ItemStackAdapter implements JsonSerializer<ItemStack>, JsonDeserial
         this.pluginInstance = pluginInstance;
     }
 
+
     @Override
     public JsonElement serialize(ItemStack itemStack, Type type, JsonSerializationContext context)
     {
@@ -30,18 +44,17 @@ public class ItemStackAdapter implements JsonSerializer<ItemStack>, JsonDeserial
             return null;
 
         JsonObject jsonObject = new JsonObject();
-
         jsonObject.add("amount", new JsonPrimitive(itemStack.getAmount()));
         jsonObject.add("material", new JsonPrimitive(itemStack.getType().name()));
 
-        if (itemStack.hasItemMeta())
+        if (itemStack.hasItemMeta() && itemStack.getItemMeta() != null)
         {
             ItemMeta itemMeta = itemStack.getItemMeta();
 
             if (itemMeta.hasDisplayName())
                 jsonObject.add("displayName", new JsonPrimitive(itemMeta.getDisplayName()));
 
-            if (itemMeta.hasLore())
+            if (itemMeta.hasLore() && itemMeta.getLore() != null)
             {
                 JsonArray loreArray = new JsonArray();
                 for (String loreElement : itemMeta.getLore())
@@ -114,6 +127,9 @@ public class ItemStackAdapter implements JsonSerializer<ItemStack>, JsonDeserial
         ItemStack itemStack = new ItemStack(Material.STONE);
         ItemMeta itemMeta = itemStack.getItemMeta();
 
+        if (itemMeta == null)
+            return itemStack;
+
         if (jsonObject.has("amount"))
         {
             itemStack.setAmount(jsonObject.get("amount").getAsInt());
@@ -132,9 +148,9 @@ public class ItemStackAdapter implements JsonSerializer<ItemStack>, JsonDeserial
         if (jsonObject.has("lore"))
         {
             List<String> loreList = new ArrayList<>();
-            for (JsonObject jsonObj : jsonArrayToList(jsonObject.get("lore").getAsJsonArray()))
+            for (JsonElement loreElement: jsonArrayToElementList(jsonObject.get("lore").getAsJsonArray()))
             {
-                loreList.add(jsonObj.getAsString());
+                loreList.add(loreElement.getAsString());
             }
             itemMeta.setLore(loreList);
         }
@@ -178,8 +194,13 @@ public class ItemStackAdapter implements JsonSerializer<ItemStack>, JsonDeserial
         return itemStack;
     }
 
+
     //region Enchantments
-    private JsonArray serializeEnchantments(Map<Enchantment, Integer> enchantments)
+    /**
+     * Serialize an {@link Enchantment} map into a {@link JsonArray}
+     */
+    @NotNull
+    private JsonArray serializeEnchantments(@NotNull Map<Enchantment, Integer> enchantments)
     {
         JsonArray enchantArray = new JsonArray();
         for (Enchantment enchant : enchantments.keySet())
@@ -187,34 +208,38 @@ public class ItemStackAdapter implements JsonSerializer<ItemStack>, JsonDeserial
             JsonObject enchantObject = new JsonObject();
             enchantObject.add("type", new JsonPrimitive(enchant.getName()));
             enchantObject.add("amplifier", new JsonPrimitive(enchantments.get(enchant)));
-
             enchantArray.add(enchantObject);
         }
-
         return enchantArray;
     }
 
-    private Map<Enchantment, Integer> deserializeEnchantments(JsonArray jsonArray)
+    /**
+     * Deserialize a {@link JsonArray} into an {@link Enchantment} map
+     */
+    @NotNull
+    private Map<Enchantment, Integer> deserializeEnchantments(@NotNull JsonArray jsonArray)
     {
         HashMap<Enchantment, Integer> enchantments = new HashMap<>();
-
-        for (JsonObject enchantObject : jsonArrayToList(jsonArray))
+        for (JsonObject enchantObject : jsonArrayToObjectList(jsonArray))
         {
+            Integer enchantAmplifier = enchantObject.get("amplifier").getAsInt();
             Enchantment enchant = Enchantment.getByName(enchantObject.get("type").getAsString());
             if (enchant == null)
                 throw new RuntimeException("Error serializing item! - Invalid Enchantment: '" + enchantObject.get("type").getAsString() + "'");
 
-            Integer enchantAmplifier = enchantObject.get("amplifier").getAsInt();
-
             enchantments.put(enchant, enchantAmplifier);
         }
-
         return enchantments;
     }
     //endregion
 
+
     //region Potion/Tipped Arrow
-    private JsonObject serializePotion(PotionMeta potionMeta)
+    /**
+     * Serialize a {@link PotionMeta} into a {@link JsonObject}
+     */
+    @NotNull
+    private JsonObject serializePotion(@NotNull PotionMeta potionMeta)
     {
         JsonObject jsonObject = new JsonObject();
 
@@ -226,30 +251,32 @@ public class ItemStackAdapter implements JsonSerializer<ItemStack>, JsonDeserial
         if (potionMeta.hasColor())
         {
             Color potionColor = potionMeta.getColor();
-            jsonObject.add("color", getJsonFromColor(potionColor));
+            if (potionColor != null)
+                jsonObject.add("color", colorToJson(potionColor));
         }
 
         if (potionMeta.hasCustomEffects())
         {
             JsonArray effectArray = new JsonArray();
-
             for (PotionEffect effect : potionMeta.getCustomEffects())
             {
                 JsonObject effectObject = new JsonObject();
                 effectObject.add("type", new JsonPrimitive(effect.getType().getName()));
                 effectObject.add("amplifier", new JsonPrimitive(effect.getAmplifier()));
                 effectObject.add("duration", new JsonPrimitive(effect.getDuration()));
-
                 effectArray.add(effectObject);
             }
-
             jsonObject.add("customEffects", effectArray);
         }
 
         return jsonObject;
     }
 
-    private PotionMeta deserializePotion(JsonObject jsonObject)
+    /**
+     * Deserialize a {@link JsonObject} into a {@link PotionMeta}
+     */
+    @NotNull
+    private PotionMeta deserializePotion(@NotNull JsonObject jsonObject)
     {
         PotionMeta potionMeta = (PotionMeta) pluginInstance.getServer().getItemFactory().getItemMeta(Material.POTION);
         if (potionMeta == null)
@@ -258,20 +285,19 @@ public class ItemStackAdapter implements JsonSerializer<ItemStack>, JsonDeserial
         PotionData potionData = new PotionData(
                 PotionType.valueOf(jsonObject.get("type").getAsString()),
                 jsonObject.get("extended").getAsBoolean(),
-
                 jsonObject.get("upgraded").getAsBoolean()
         );
         potionMeta.setBasePotionData(potionData);
 
         if (jsonObject.has("color"))
         {
-            Color potionColor = getColorFromJson(jsonObject.get("color").getAsJsonObject());
+            Color potionColor = jsonToColor(jsonObject.get("color").getAsJsonObject());
             potionMeta.setColor(potionColor);
         }
 
         if (jsonObject.has("customEffects"))
         {
-            for (JsonObject effectObject : jsonArrayToList(jsonObject.get("customEffects").getAsJsonArray()))
+            for (JsonObject effectObject : jsonArrayToObjectList(jsonObject.get("customEffects").getAsJsonArray()))
             {
                 PotionEffectType potionEffectType = PotionEffectType.getByName(effectObject.get("type").getAsString());
                 if (potionEffectType == null)
@@ -291,8 +317,13 @@ public class ItemStackAdapter implements JsonSerializer<ItemStack>, JsonDeserial
     }
     //endregion
 
+
     //region Enchantment Storage
-    private JsonArray serializeEnchantStorage(EnchantmentStorageMeta enchantMeta)
+    /**
+     * Serialize an {@link EnchantmentStorageMeta} into a {@link JsonArray}
+     */
+    @NotNull
+    private JsonArray serializeEnchantStorage(@NotNull EnchantmentStorageMeta enchantMeta)
     {
         JsonArray jsonArray = new JsonArray();
 
@@ -302,7 +333,11 @@ public class ItemStackAdapter implements JsonSerializer<ItemStack>, JsonDeserial
         return jsonArray;
     }
 
-    private EnchantmentStorageMeta deserializeEnchantStorage(JsonArray jsonArray)
+    /**
+     * Deserialize a {@link JsonArray} into an {@link EnchantmentStorageMeta}
+     */
+    @NotNull
+    private EnchantmentStorageMeta deserializeEnchantStorage(@NotNull JsonArray jsonArray)
     {
         EnchantmentStorageMeta enchantMeta = (EnchantmentStorageMeta) pluginInstance.getServer().getItemFactory().getItemMeta(Material.ENCHANTED_BOOK);
         if (enchantMeta == null)
@@ -321,18 +356,23 @@ public class ItemStackAdapter implements JsonSerializer<ItemStack>, JsonDeserial
     }
     //endregion
 
+
     //region Book
-    private JsonObject serializeBook(BookMeta bookMeta)
+    /**
+     * Serialize a {@link BookMeta} into a {@link JsonObject}
+     */
+    @NotNull
+    private JsonObject serializeBook(@NotNull BookMeta bookMeta)
     {
         JsonObject jsonObject = new JsonObject();
 
-        if (bookMeta.hasTitle())
+        if (bookMeta.hasTitle() && bookMeta.getTitle() != null)
             jsonObject.add("title", new JsonPrimitive(bookMeta.getTitle()));
 
-        if (bookMeta.hasAuthor())
+        if (bookMeta.hasAuthor() && bookMeta.getAuthor() != null)
             jsonObject.add("author", new JsonPrimitive(bookMeta.getAuthor()));
 
-        if (bookMeta.hasGeneration())
+        if (bookMeta.hasGeneration() && bookMeta.getGeneration() != null)
             jsonObject.add("generation", new JsonPrimitive(bookMeta.getGeneration().toString()));
 
         if (bookMeta.hasPages())
@@ -348,7 +388,11 @@ public class ItemStackAdapter implements JsonSerializer<ItemStack>, JsonDeserial
         return jsonObject;
     }
 
-    private BookMeta deserializeBook(JsonObject jsonObject)
+    /**
+     * Deserialize a {@link JsonObject} into a {@link BookMeta}
+     */
+    @NotNull
+    private BookMeta deserializeBook(@NotNull JsonObject jsonObject)
     {
         BookMeta bookMeta = (BookMeta) pluginInstance.getServer().getItemFactory().getItemMeta(Material.WRITTEN_BOOK);
         if (bookMeta == null)
@@ -376,12 +420,10 @@ public class ItemStackAdapter implements JsonSerializer<ItemStack>, JsonDeserial
         if (jsonObject.has("pages"))
         {
             List<String> pages = new ArrayList<>();
-
-            for (JsonObject jsonObj : jsonArrayToList(jsonObject.get("pages").getAsJsonArray()))
+            for (JsonObject jsonObj : jsonArrayToObjectList(jsonObject.get("pages").getAsJsonArray()))
             {
                 pages.add(jsonObj.getAsString());
             }
-
             bookMeta.setPages(pages);
         }
 
@@ -389,8 +431,13 @@ public class ItemStackAdapter implements JsonSerializer<ItemStack>, JsonDeserial
     }
     //endregion
 
+
     //region Firework
-    private JsonObject serializeFirework(FireworkMeta fireworkMeta)
+    /**
+     * Serialize a {@link FireworkMeta} into a {@link JsonObject}
+     */
+    @NotNull
+    private JsonObject serializeFirework(@NotNull FireworkMeta fireworkMeta)
     {
         JsonObject jsonObject = new JsonObject();
         jsonObject.add("power", new JsonPrimitive(fireworkMeta.getPower()));
@@ -408,14 +455,14 @@ public class ItemStackAdapter implements JsonSerializer<ItemStack>, JsonDeserial
                 JsonArray colorArray = new JsonArray();
                 for (Color color : effect.getColors())
                 {
-                    colorArray.add(getJsonFromColor(color));
+                    colorArray.add(colorToJson(color));
                 }
                 effectObject.add("colors", colorArray);
 
                 JsonArray fadeArray = new JsonArray();
                 for (Color color : effect.getFadeColors())
                 {
-                    fadeArray.add(getJsonFromColor(color));
+                    fadeArray.add(colorToJson(color));
                 }
                 effectObject.add("fadeColors", fadeArray);
 
@@ -428,7 +475,11 @@ public class ItemStackAdapter implements JsonSerializer<ItemStack>, JsonDeserial
         return jsonObject;
     }
 
-    private FireworkMeta deserializeFirework(JsonObject jsonObject)
+    /**
+     * Deserialize a {@link JsonObject} into a {@link FireworkMeta}
+     */
+    @NotNull
+    private FireworkMeta deserializeFirework(@NotNull JsonObject jsonObject)
     {
         FireworkMeta fireworkMeta = (FireworkMeta) pluginInstance.getServer().getItemFactory().getItemMeta(Material.FIREWORK_ROCKET);
         if (fireworkMeta == null)
@@ -439,22 +490,22 @@ public class ItemStackAdapter implements JsonSerializer<ItemStack>, JsonDeserial
         if (jsonObject.has("effects"))
         {
             List<FireworkEffect> fireworkEffects = new ArrayList<>();
-            for (JsonObject effectObject : jsonArrayToList(jsonObject.get("effects").getAsJsonArray()))
+            for (JsonObject effectObject : jsonArrayToObjectList(jsonObject.get("effects").getAsJsonArray()))
             {
                 try
                 {
                     FireworkEffect.Type effectType = FireworkEffect.Type.valueOf(effectObject.get("type").getAsString());
 
                     List<Color> effectColors = new ArrayList<>();
-                    for (JsonObject jsonObj : jsonArrayToList(effectObject.get("colors").getAsJsonArray()))
+                    for (JsonObject jsonObj : jsonArrayToObjectList(effectObject.get("colors").getAsJsonArray()))
                     {
-                        effectColors.add(getColorFromJson(jsonObj));
+                        effectColors.add(jsonToColor(jsonObj));
                     }
 
                     List<Color> effectFades = new ArrayList<>();
-                    for (JsonObject jsonObj : jsonArrayToList(effectObject.get("fadeColors").getAsJsonArray()))
+                    for (JsonObject jsonObj : jsonArrayToObjectList(effectObject.get("fadeColors").getAsJsonArray()))
                     {
-                        effectFades.add(getColorFromJson(jsonObj));
+                        effectFades.add(jsonToColor(jsonObj));
                     }
 
                     FireworkEffect effect = FireworkEffect.builder().
@@ -480,39 +531,51 @@ public class ItemStackAdapter implements JsonSerializer<ItemStack>, JsonDeserial
     }
     //endregion
 
+
     //region Leather Armor
-    private JsonObject serializeLeatherArmor(LeatherArmorMeta leatherArmorMeta)
+    /**
+     * Serialize a {@link LeatherArmorMeta} into a {@link JsonObject}
+     */
+    @NotNull
+    private JsonObject serializeLeatherArmor(@NotNull LeatherArmorMeta leatherArmorMeta)
     {
         JsonObject jsonObject = new JsonObject();
-        jsonObject.add("color", getJsonFromColor(leatherArmorMeta.getColor()));
+        jsonObject.add("color", colorToJson(leatherArmorMeta.getColor()));
         return jsonObject;
     }
 
+    /**
+     * Deserialize a {@link JsonObject} into a {@link LeatherArmorMeta}
+     */
     private LeatherArmorMeta deserializeLeatherArmor(JsonObject jsonObject)
     {
         LeatherArmorMeta leatherArmorMeta = (LeatherArmorMeta) pluginInstance.getServer().getItemFactory().getItemMeta(Material.LEATHER_CHESTPLATE);
         if (leatherArmorMeta == null)
             throw new RuntimeException("Error serializing item! - Can't cast ItemMeta to LeatherArmorMeta");
 
-        Color armorColor = getColorFromJson(jsonObject.get("color").getAsJsonObject());
+        Color armorColor = jsonToColor(jsonObject.get("color").getAsJsonObject());
         leatherArmorMeta.setColor(armorColor);
 
         return leatherArmorMeta;
     }
     //endregion
 
-    //region Head/Skull
 
+    //region Head/Skull
     /*
      * NOTE: Bukkit.getOfflinePlayer(UUID) seems to be bugged and will only find players who have joined the server.
      * Because of this, I am forced to use deprecated methods to get/set the owner of the skull.
      */
 
-    private JsonObject serializeSkull(SkullMeta skullMeta)
+    /**
+     * Serialize a {@link SkullMeta} into a {@link JsonObject}
+     */
+    @NotNull
+    private JsonObject serializeSkull(@NotNull SkullMeta skullMeta)
     {
         JsonObject jsonObject = new JsonObject();
 
-        if (skullMeta.hasOwner())
+        if (skullMeta.hasOwner() && skullMeta.getOwner() != null)
         {
             jsonObject.add("owner", new JsonPrimitive(skullMeta.getOwner()));
         }
@@ -520,7 +583,11 @@ public class ItemStackAdapter implements JsonSerializer<ItemStack>, JsonDeserial
         return jsonObject;
     }
 
-    private SkullMeta deserializeSkull(JsonObject jsonObject)
+    /**
+     * Deserialize a {@link JsonObject} into a {@link SkullMeta}
+     */
+    @NotNull
+    private SkullMeta deserializeSkull(@NotNull JsonObject jsonObject)
     {
         SkullMeta skullMeta = (SkullMeta) pluginInstance.getServer().getItemFactory().getItemMeta(Material.PLAYER_HEAD);
         if (skullMeta == null)
@@ -529,37 +596,6 @@ public class ItemStackAdapter implements JsonSerializer<ItemStack>, JsonDeserial
         skullMeta.setOwner(jsonObject.get("owner").getAsString());
 
         return skullMeta;
-    }
-    //endregion
-
-    //region Utility
-    private Color getColorFromJson(JsonObject colorObject)
-    {
-        Color color = Color.fromRGB(
-                colorObject.get("red").getAsInt(),
-                colorObject.get("green").getAsInt(),
-                colorObject.get("blue").getAsInt()
-        );
-        return color;
-    }
-
-    private JsonObject getJsonFromColor(Color color)
-    {
-        JsonObject jsonObject = new JsonObject();
-        jsonObject.add("red", new JsonPrimitive(color.getRed()));
-        jsonObject.add("green", new JsonPrimitive(color.getGreen()));
-        jsonObject.add("blue", new JsonPrimitive(color.getBlue()));
-        return jsonObject;
-    }
-
-    private List<JsonObject> jsonArrayToList(JsonArray jsonArray)
-    {
-        List<JsonObject> resultList = new ArrayList<>();
-        for (int i = 0; i < jsonArray.size(); i++)
-        {
-            resultList.add(jsonArray.get(i).getAsJsonObject());
-        }
-        return resultList;
     }
     //endregion
 }

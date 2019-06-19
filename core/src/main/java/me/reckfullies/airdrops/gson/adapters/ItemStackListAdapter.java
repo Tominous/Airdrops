@@ -8,36 +8,33 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
+import static me.reckfullies.airdrops.gson.adapters.AdapterUtils.jsonArrayToElementList;
+
 public class ItemStackListAdapter implements JsonSerializer<List<ItemStack>>, JsonDeserializer<List<ItemStack>>
 {
     @Override
     public JsonElement serialize(List<ItemStack> itemStacks, Type type, JsonSerializationContext context)
     {
         JsonArray jsonArray = new JsonArray();
-
         for (ItemStack item : itemStacks)
         {
             jsonArray.add(
                     context.serialize(item, new TypeToken<ItemStack>(){}.getType())
             );
         }
-
         return jsonArray;
     }
 
     @Override
     public List<ItemStack> deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext context) throws JsonParseException
     {
-        JsonArray jsonArray = jsonElement.getAsJsonArray();
         List<ItemStack> itemStacks = new ArrayList<>();
-
-        for (int i = 0; i < jsonArray.size(); i++)
+        for (JsonElement itemElement : jsonArrayToElementList(jsonElement.getAsJsonArray()))
         {
             itemStacks.add(
-                    context.deserialize(jsonArray.get(i), new TypeToken<ItemStack>(){}.getType())
+                    context.deserialize(itemElement, new TypeToken<ItemStack>(){}.getType())
             );
         }
-
         return itemStacks;
     }
 }

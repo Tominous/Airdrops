@@ -10,14 +10,14 @@ import me.reckfullies.airdrops.gson.adapters.ItemStackListAdapter;
 import me.reckfullies.airdrops.gson.adapters.PackageAdapter;
 import me.reckfullies.airdrops.gson.adapters.PackageListAdapter;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nullable;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Handles saving/loading of package data
+ * Handles saving/loading of {@link Package} data
  *
  * @author Reckfullies
  */
@@ -46,11 +46,9 @@ public class PackageIO
     }
 
     /**
-     * Saves a package configuration to JSON
-     *
-     * @param packageToSave Package object to save
+     * Saves a {@link Package} to JSON
      */
-    public void savePackage(Package packageToSave)
+    public void savePackage(@NotNull Package packageToSave)
     {
         List<Package> packageList = readPackagesJson();
 
@@ -61,11 +59,9 @@ public class PackageIO
     }
 
     /**
-     * Deletes a package configuration from JSON
-     *
-     * @param packageName Name of package to delete
+     * Deletes a {@link Package} from JSON
      */
-    public void deletePackage(String packageName)
+    public void deletePackage(@NotNull String packageName)
     {
         List<Package> packageList = readPackagesJson();
 
@@ -75,12 +71,10 @@ public class PackageIO
     }
 
     /**
-     * Loads a package configuration from memory
-     *
-     * @param packageName Package name to load
-     * @return Package object generated from JSON, some values may be null
+     * Loads a {@link Package} from memory
      */
-    public Package loadPackage(String packageName)
+    @NotNull
+    public Package loadPackage(@NotNull String packageName)
     {
         for (Package pkg : loadedPackages)
         {
@@ -92,7 +86,7 @@ public class PackageIO
     }
 
     /**
-     * Reloads packages stored in memory
+     * Reloads {@link Package} list currently stored in memory
      */
     public void reloadAllPackages()
     {
@@ -100,12 +94,9 @@ public class PackageIO
     }
 
     /**
-     * Checks for a package in memory
-     *
-     * @param packageName Package name to check
-     * @return Is this package in memory?
+     * Checks for a {@link Package} in memory
      */
-    public boolean checkPackageExists(String packageName)
+    public boolean checkPackageExists(@NotNull String packageName)
     {
         for (Package pkg : loadedPackages)
         {
@@ -117,10 +108,9 @@ public class PackageIO
     }
 
     /**
-     * Loads all package configurations from JSON
-     *
-     * @return Package list generated from JSON, some values may be null
+     * Loads a list of {@link Package} from JSON
      */
+    @NotNull
     private List<Package> loadAllPackages()
     {
         File jsonFile = new File(packageJsonPath);
@@ -132,10 +122,9 @@ public class PackageIO
     }
 
     /**
-     * Read packages from a JSON file
-     *
-     * @return Packages list if found, otherwise will be an empty list
+     * Reads a list of {@link Package} from a JSON file
      */
+    @NotNull
     private List<Package> readPackagesJson()
     {
         File jsonFile = new File(packageJsonPath);
@@ -160,11 +149,9 @@ public class PackageIO
     }
 
     /**
-     * Writes packages to a JSON file
-     *
-     * @param packages List of packages to write
+     * Writes a list of {@link Package} to a JSON file
      */
-    private void writePackagesJson(List<Package> packages)
+    private void writePackagesJson(@NotNull List<Package> packages)
     {
         try
         {
