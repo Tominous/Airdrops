@@ -1,15 +1,11 @@
 package me.reckfullies.airdrops;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
-import me.reckfullies.airdrops.gson.adapters.ItemStackAdapter;
-import me.reckfullies.airdrops.gson.adapters.ItemStackListAdapter;
 import me.reckfullies.airdrops.gson.adapters.PackageAdapter;
 import me.reckfullies.airdrops.gson.adapters.PackageListAdapter;
-import org.bukkit.inventory.ItemStack;
+import me.reckfullies.jsonlib.api.JSONLib;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
@@ -26,7 +22,7 @@ public class PackageIO
     private String pluginDataPath;
     private String packageJsonPath;
 
-    private Gson gson;
+    private JSONLib jsonLib;
     private List<Package> loadedPackages;
 
     PackageIO(Airdrops pluginInstance, String pluginDataPath)
@@ -34,13 +30,10 @@ public class PackageIO
         this.pluginDataPath = pluginDataPath;
         this.packageJsonPath = pluginDataPath.concat("\\packages.json");
 
-        GsonBuilder gsonBuilder = new GsonBuilder();
-        gsonBuilder.setPrettyPrinting();
-        gsonBuilder.registerTypeAdapter(new TypeToken<ItemStack>(){}.getType(), new ItemStackAdapter(pluginInstance));
-        gsonBuilder.registerTypeAdapter(new TypeToken<List<ItemStack>>(){}.getType(), new ItemStackListAdapter());
-        gsonBuilder.registerTypeAdapter(new TypeToken<Package>(){}.getType(), new PackageAdapter());
-        gsonBuilder.registerTypeAdapter(new TypeToken<List<Package>>(){}.getType(), new PackageListAdapter());
-        this.gson = gsonBuilder.create();
+        this.jsonLib = new JSONLib(pluginInstance);
+        this.jsonLib.addAdapter(new TypeToken<Package>(){}, new PackageAdapter());
+        this.jsonLib.addAdapter(new TypeToken<List<Package>>(){}, new PackageListAdapter());
+        this.jsonLib.init(true);
 
         this.loadedPackages = loadAllPackages();
     }
@@ -134,10 +127,15 @@ public class PackageIO
         try
         {
             BufferedReader br = new BufferedReader(new FileReader(packageJsonPath));
-            List<Package> packages = gson.fromJson(br, new TypeToken<List<Package>>() {}.getType());
-            return packages == null ? new ArrayList<>() : packages;
+            StringBuilder jsonBuilder = new StringBuilder();
+
+            String currentLine;
+            while ((currentLine = br.readLine()) != null)
+                jsonBuilder.append(currentLine);
+
+            return jsonLib.deserializeGeneric(new TypeToken<List<Package>>(){}, jsonBuilder.toString());
         }
-        catch (FileNotFoundException | JsonIOException | JsonSyntaxException ex)
+        catch (IOException | JsonIOException | JsonSyntaxException ex)
         {
             if (ex instanceof JsonSyntaxException)
             {
@@ -160,7 +158,7 @@ public class PackageIO
                 directory.mkdir();
 
             Writer writer = new FileWriter(packageJsonPath);
-            writer.write(gson.toJson(packages, new TypeToken<List<Package>>(){}.getType()));
+            writer.write(jsonLib.serializeGeneric(new TypeToken<List<Package>>(){}, packages));
             writer.close();
         }
         catch (IOException ex)

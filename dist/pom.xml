@@ -33,6 +33,7 @@
                             <artifactSet>
                                 <includes>
                                     <include>me.reckfullies:airdrops-*</include>
+                                    <include>com.github.Reckfullies:JSONLib</include>
                                     <include>co.aikar:*</include>
                                     <include>net.jodah:*</include>
                                     <include>org.bstats:*</include>

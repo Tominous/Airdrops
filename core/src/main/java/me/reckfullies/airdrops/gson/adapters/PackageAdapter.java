@@ -3,13 +3,14 @@ package me.reckfullies.airdrops.gson.adapters;
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import me.reckfullies.airdrops.Package;
+import me.reckfullies.jsonlib.api.JSONAdapter;
 import org.bukkit.inventory.ItemStack;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PackageAdapter implements JsonSerializer<Package>, JsonDeserializer<Package>
+public class PackageAdapter implements JSONAdapter<Package>
 {
     @Override
     public JsonElement serialize(Package pkg, Type type, JsonSerializationContext context)

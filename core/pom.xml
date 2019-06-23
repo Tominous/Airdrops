@@ -46,6 +46,14 @@
             <id>CodeMC</id>
             <url>https://repo.codemc.org/repository/maven-public</url>
         </repository>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+            </snapshots>
+        </repository>
     </repositories>
 
     <dependencies>
@@ -60,6 +68,12 @@
             <artifactId>bstats-bukkit</artifactId>
             <version>1.5</version>
             <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.Reckfullies</groupId>
+            <artifactId>JSONLib</artifactId>
+            <!-- Maven says this is invalid, but it isn't -->
+            <version>master-SNAPSHOT</version>
         </dependency>
     </dependencies>
 </project>

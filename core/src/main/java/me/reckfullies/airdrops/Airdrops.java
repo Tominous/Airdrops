@@ -4,6 +4,7 @@ import co.aikar.commands.PaperCommandManager;
 import me.reckfullies.airdrops.commands.PackageCommand;
 import me.reckfullies.airdrops.listeners.ChestListener;
 import org.bstats.bukkit.Metrics;
+import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /**
@@ -21,11 +22,10 @@ public final class Airdrops extends JavaPlugin
     public void onEnable()
     {
         metrics = new Metrics(this);
+        packageIO = new PackageIO(this, getDataFolder().getAbsolutePath());
 
         commandManager = new PaperCommandManager(this);
         commandManager.enableUnstableAPI("help");
-
-        packageIO = new PackageIO(this, getDataFolder().getAbsolutePath());
 
         RegisterDependencies();
         RegisterCompletions();
@@ -63,7 +63,8 @@ public final class Airdrops extends JavaPlugin
      */
     private void RegisterListeners()
     {
-        getServer().getPluginManager().registerEvents(new ChestListener(this), this);
+        PluginManager pluginManager = getServer().getPluginManager();
+        pluginManager.registerEvents(new ChestListener(this), this);
     }
 
     //region Getters
