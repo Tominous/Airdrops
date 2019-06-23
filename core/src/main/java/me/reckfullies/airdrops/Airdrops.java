@@ -2,7 +2,7 @@ package me.reckfullies.airdrops;
 
 import co.aikar.commands.PaperCommandManager;
 import me.reckfullies.airdrops.commands.PackageCommand;
-import me.reckfullies.airdrops.listeners.ChestListener;
+import me.reckfullies.airdrops.listeners.InteractListener;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -64,7 +64,7 @@ public final class Airdrops extends JavaPlugin
     private void RegisterListeners()
     {
         PluginManager pluginManager = getServer().getPluginManager();
-        pluginManager.registerEvents(new ChestListener(this), this);
+        pluginManager.registerEvents(new InteractListener(this), this);
     }
 
     //region Getters

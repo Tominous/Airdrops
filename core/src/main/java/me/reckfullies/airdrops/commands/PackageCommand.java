@@ -6,6 +6,7 @@ import co.aikar.commands.annotation.*;
 import me.reckfullies.airdrops.Airdrops;
 import me.reckfullies.airdrops.Package;
 import me.reckfullies.airdrops.PackageIO;
+import me.reckfullies.airdrops.items.SignalItem;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -79,11 +80,11 @@ public class PackageCommand extends BaseCommand
         player.sendMessage(ChatColor.GREEN + "Package '" + packageName + "' deleted!");
     }
 
-    @Subcommand("call")
+    @Subcommand("signal")
     @CommandCompletion("@packageName")
-    @CommandPermission("airdrops.call")
-    @Description("Calls an airdrop at player crosshair.")
-    private void onCallPackage(Player player, @Single String packageName)
+    @CommandPermission("airdrops.signal")
+    @Description("Gives an item which can call a single airdrop")
+    private void onGiveSignal(Player player, @Single String packageName)
     {
         if (!packageIO.checkPackageExists(packageName))
         {
@@ -91,26 +92,8 @@ public class PackageCommand extends BaseCommand
             return;
         }
 
-        Package loadedPackage = packageIO.loadPackage(packageName);
-
-        Block targetBlock = player.getTargetBlock(null, 6).getRelative(BlockFace.UP);
-        if (targetBlock.getType() == Material.AIR)
-        {
-            targetBlock.setType(Material.CHEST);
-            Chest c = (Chest) targetBlock.getState();
-
-            // Set persistent data
-            c.getPersistentDataContainer().set(new NamespacedKey(pluginInstance, "airdrops"), PersistentDataType.BYTE, (byte) 1);
-            c.update();
-
-            // Set inventory
-            ItemStack[] contents = new ItemStack[0];
-            c.getBlockInventory().setContents(loadedPackage.getItems().toArray(contents));
-        }
-        else
-        {
-            player.sendMessage(ChatColor.RED + "Invalid Location!");
-        }
+        player.getInventory().addItem(new SignalItem(pluginInstance, packageName));
+        player.sendMessage(ChatColor.GREEN + "You have been given a Signal!");
     }
 
     @Subcommand("reload")
