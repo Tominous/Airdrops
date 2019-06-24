@@ -6,17 +6,12 @@ import co.aikar.commands.annotation.*;
 import me.reckfullies.airdrops.Airdrops;
 import me.reckfullies.airdrops.Package;
 import me.reckfullies.airdrops.PackageIO;
+import me.reckfullies.airdrops.items.FlareItem;
 import me.reckfullies.airdrops.items.SignalItem;
 import org.bukkit.ChatColor;
-import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
-import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
-import org.bukkit.block.Chest;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.persistence.PersistentDataType;
 
 import java.util.ArrayList;
 
@@ -80,20 +75,50 @@ public class PackageCommand extends BaseCommand
         player.sendMessage(ChatColor.GREEN + "Package '" + packageName + "' deleted!");
     }
 
-    @Subcommand("signal")
+    @Subcommand("flare")
     @CommandCompletion("@packageName")
-    @CommandPermission("airdrops.signal")
-    @Description("Gives an item which can call a single airdrop")
-    private void onGiveSignal(Player player, @Single String packageName)
+    @CommandPermission("airdrops.flare")
+    @Description("Gives an item which can call 5 airdrops in a 5x5 chunk radius.")
+    private void onGiveFlare(Player player, @Single String packageName, @Optional Player otherPlayer)
     {
+        Player targetPlayer = otherPlayer == null ? player : otherPlayer;
+
         if (!packageIO.checkPackageExists(packageName))
         {
             player.sendMessage(ChatColor.RED + "Package '" + packageName + "' does not exist!");
             return;
         }
 
-        player.getInventory().addItem(new SignalItem(pluginInstance, packageName));
-        player.sendMessage(ChatColor.GREEN + "You have been given a Signal!");
+        targetPlayer.getInventory().addItem(new FlareItem(pluginInstance, packageName));
+        targetPlayer.sendMessage(ChatColor.GREEN + "You have been given a Flare!");
+
+        if (targetPlayer != player)
+        {
+            player.sendMessage(ChatColor.GREEN + "You have given a Flare to " + targetPlayer.getName());
+        }
+    }
+
+    @Subcommand("signal")
+    @CommandCompletion("@packageName")
+    @CommandPermission("airdrops.signal")
+    @Description("Gives an item which can call a single airdrop")
+    private void onGiveSignal(Player player, @Single String packageName, @Optional Player otherPlayer)
+    {
+        Player targetPlayer = otherPlayer == null ? player : otherPlayer;
+
+        if (!packageIO.checkPackageExists(packageName))
+        {
+            player.sendMessage(ChatColor.RED + "Package '" + packageName + "' does not exist!");
+            return;
+        }
+
+        targetPlayer.getInventory().addItem(new SignalItem(pluginInstance, packageName));
+        targetPlayer.sendMessage(ChatColor.GREEN + "You have been given a Signal!");
+
+        if (targetPlayer != player)
+        {
+            player.sendMessage(ChatColor.GREEN + "You have given a Signal to " + targetPlayer.getName());
+        }
     }
 
     @Subcommand("reload")
